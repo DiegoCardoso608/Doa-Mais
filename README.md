@@ -2,8 +2,6 @@
 
 Sistema voltado para facilitar doações, conectando doadores, instituições e pessoas que precisam de ajuda por meio de uma plataforma simples, organizada e acessível.
 
-# DOA+
-
 ## Sobre o Projeto
 
 O DOA+ é uma plataforma de doação inteligente que busca conectar doadores a instituições sociais ou pessoas necessitadas. O sistema foi pensado para facilitar o processo de doação de roupas, alimentos, móveis e outros itens, permitindo que recursos que seriam descartados possam chegar a quem realmente precisa.
