@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-
 import 'firebase_options.dart';
-
 import 'screens/main_screen.dart';
 import 'screens/login_pf.dart';
 import 'screens/empresa_login.dart';
 import 'screens/cadastro_pf.dart';
+import 'screens/menu_principal.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +31,7 @@ class DoaPlusApp extends StatelessWidget {
         '/login_pf': (context) => const LoginPF(),
         '/empresa_login': (context) => const EmpresaLogin(),
         '/cadastro_pf': (context) => const CadastroPF(),
+        '/menu_principal': (context) => const MenuPrincipal(),
       },
     );
   }

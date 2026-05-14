@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class LoginPF extends StatefulWidget {
   const LoginPF({super.key});
@@ -124,17 +125,29 @@ Widget build(BuildContext context) {
             const SizedBox(height: 30),
 
             // BOTÃO ENTRAR
-            ElevatedButton(
-              onPressed: login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: const Text("Entrar"),
-            ),
+ElevatedButton(
+  onPressed: () async {
+    final erro = await AuthService().loginPF(
+      email: emailController.text.trim(),
+      senha: senhaController.text.trim(),
+    );
+
+if (erro == null) {
+  Navigator.pushReplacementNamed(
+    context,
+    '/menu_principal',
+  );
+} else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(erro),
+        ),
+      );
+    }
+  },
+
+  child: const Text("Entrar"),
+),
 
             const SizedBox(height: 20),
 

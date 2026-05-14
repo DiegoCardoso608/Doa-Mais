@@ -5,6 +5,7 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // CADASTRO PF
   Future<String?> cadastrarPF({
     required String nome,
     required String sobrenome,
@@ -22,7 +23,10 @@ class AuthService {
         password: senha,
       );
 
-      await _firestore.collection('usuarios').doc(userCredential.user!.uid).set({
+      await _firestore
+          .collection('usuarios')
+          .doc(userCredential.user!.uid)
+          .set({
         'nome': nome,
         'sobrenome': sobrenome,
         'email': email,
@@ -37,8 +41,27 @@ class AuthService {
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
-} catch (e) {
-  return e.toString();
-}
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  // LOGIN PF
+  Future<String?> loginPF({
+    required String email,
+    required String senha,
+  }) async {
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: senha,
+      );
+
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return e.toString();
+    }
   }
 }
