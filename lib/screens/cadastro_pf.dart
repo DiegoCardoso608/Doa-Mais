@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class CadastroPF extends StatefulWidget {
   const CadastroPF({super.key});
@@ -16,6 +17,7 @@ class _CadastroPFState extends State<CadastroPF> {
   final numeroController = TextEditingController();
   final contatoController = TextEditingController();
   final senhaController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   String? dia;
   String? mes;
@@ -186,9 +188,37 @@ class _CadastroPFState extends State<CadastroPF> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // lógica futura (Firebase/MySQL)
-                      },
+                     onPressed: () async {
+  String dataNascimento =
+      '${dia ?? ''}/${mes ?? ''}/${ano ?? ''}';
+
+  String? erro = await _authService.cadastrarPF(
+    nome: nomeController.text.trim(),
+    sobrenome: sobrenomeController.text.trim(),
+    email: contatoController.text.trim(),
+    senha: senhaController.text.trim(),
+    rua: ruaController.text.trim(),
+    bairro: bairroController.text.trim(),
+    numero: numeroController.text.trim(),
+    dataNascimento: dataNascimento,
+  );
+
+  if (erro == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Cadastro realizado com sucesso!'),
+      ),
+    );
+
+    Navigator.pushNamed(context, '/login_pf');
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(erro),
+      ),
+    );
+  }
+},
                       child: const Text("Cadastrar"),
                     ),
                   ),
