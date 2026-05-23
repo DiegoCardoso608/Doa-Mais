@@ -137,7 +137,7 @@ if (erro == null) {
     context,
     '/menu_principal',
   );
-} else {
+}  else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(erro),

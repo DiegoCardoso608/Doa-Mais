@@ -7,6 +7,7 @@ import 'screens/empresa_login.dart';
 import 'screens/cadastro_pf.dart';
 import 'screens/menu_principal.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
