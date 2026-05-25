@@ -1,13 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<meta-data
+    android:name="com.google.android.geo.AIzaSyBN7s3AZHOcJ3Lt9I5V6Fziba_EEfSKjdk"
+    android:value="AIzaSyBN7s3AZHOcJ3Lt9I5V6Fziba_EEfSKjdk"/>
     <application
         android:label="doa_plus"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        
-    <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyBN7s3AZHOcJ3Lt9I5V6Fziba_EEfSKjdk"/>
-        
         <activity
             android:name=".MainActivity"
             android:exported="true"

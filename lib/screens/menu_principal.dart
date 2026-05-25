@@ -15,6 +15,14 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
   final TextEditingController pesquisaController =
       TextEditingController();
 
+  final ScrollController scrollController =
+      ScrollController();
+
+  final FocusNode pesquisaFocusNode =
+      FocusNode();
+
+  bool pesquisando = false;
+
   String categoriaSelecionada = "";
 
   final List<Map<String, dynamic>> categorias = [
@@ -45,202 +53,305 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
       body: SafeArea(
 
-        child: Column(
+        child: SingleChildScrollView(
 
-          children: [
+          controller: scrollController,
 
-            // TOPO
-            Container(
+          child: Column(
 
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-                bottom: 30,
-              ),
+            children: [
 
-              decoration: const BoxDecoration(
-                color: Color(0xFFD7EEF3),
-              ),
+              // TOPO
+              AnimatedContainer(
 
-              child: Column(
+                duration: const Duration(milliseconds: 350),
 
-                children: [
+                width: double.infinity,
 
-                  // LOGO
-                  Column(
-                    children: [
+                padding: EdgeInsets.only(
+                  top: pesquisando ? 10 : 20,
+                  left: 20,
+                  right: 20,
+                  bottom: pesquisando ? 10 : 30,
+                ),
 
-                      CircleAvatar(
-                        radius: 55,
-                        backgroundColor: Colors.white,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFD7EEF3),
+                ),
 
-                        child: Icon(
-                          Icons.volunteer_activism,
-                          color: Colors.orange,
-                          size: 55,
-                        ),
-                      ),
+                child: Column(
 
-                      const SizedBox(height: 10),
+                  children: [
 
-                      const Text(
-                        "Doa+",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
+                    // LOGO
+                    AnimatedOpacity(
 
-                  const SizedBox(height: 20),
+                      duration:
+                          const Duration(milliseconds: 250),
 
-                  // TEXTO
-                  const Text(
-                    "Olá! Diego Você Gostaria De Doar Hoje?",
-                    textAlign: TextAlign.center,
+                      opacity: pesquisando ? 0 : 1,
 
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF5BB8C9),
-                    ),
-                  ),
+                      child: AnimatedContainer(
 
-                  const SizedBox(height: 30),
+                        duration:
+                            const Duration(milliseconds: 300),
 
-                  // CATEGORIAS
-                  Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceAround,
-
-                    children: categorias.map((categoria) {
-
-                      final bool selecionado =
-                          categoriaSelecionada ==
-                              categoria['nome'];
-
-                      return GestureDetector(
-
-                        onTap: () {
-
-                          setState(() {
-
-                            if (categoriaSelecionada ==
-                                categoria['nome']) {
-
-                              categoriaSelecionada = "";
-
-                            } else {
-
-                              categoriaSelecionada =
-                                  categoria['nome'];
-                            }
-                          });
-                        },
+                        height: pesquisando ? 0 : 170,
 
                         child: Column(
-
                           children: [
 
-                            Container(
+                            CircleAvatar(
+                              radius: 55,
+                              backgroundColor: Colors.white,
 
-                              width: 75,
-                              height: 75,
-
-                              decoration: BoxDecoration(
-
-                                color: selecionado
-                                    ? const Color(0xFF5BB8C9)
-                                    : Colors.white,
-
-                                shape: BoxShape.circle,
+                              child: const Icon(
+                                Icons.volunteer_activism,
+                                color: Colors.orange,
+                                size: 55,
                               ),
+                            ),
 
-                              child: Center(
+                            const SizedBox(height: 10),
 
-                                child: Text(
-                                  categoria['icone'],
-                                  style: const TextStyle(
-                                    fontSize: 35,
-                                  ),
-                                ),
+                            const Text(
+                              "Doa+",
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-
-            // PESQUISA
-            Padding(
-
-              padding: const EdgeInsets.all(20),
-
-              child: Container(
-
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                ),
-
-                decoration: BoxDecoration(
-
-                  color: Colors.white,
-
-                  borderRadius:
-                      BorderRadius.circular(35),
-
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.10),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-
-                child: Row(
-
-                  children: [
-
-                    Expanded(
-
-                      child: TextField(
-
-                        controller: pesquisaController,
-
-                        decoration: const InputDecoration(
-                          hintText:
-                              "Pesquisar ONG, Instituição",
-                          border: InputBorder.none,
-                        ),
-
-                        onChanged: (value) {
-                          setState(() {});
-                        },
                       ),
                     ),
 
-                    const Icon(
-                      Icons.search,
-                      size: 35,
-                      color: Colors.grey,
+                    // TEXTO
+                    AnimatedOpacity(
+
+                      duration:
+                          const Duration(milliseconds: 250),
+
+                      opacity: pesquisando ? 0 : 1,
+
+                      child: AnimatedContainer(
+
+                        duration:
+                            const Duration(milliseconds: 300),
+
+                        height: pesquisando ? 0 : 120,
+
+                        child: const Text(
+                          "Olá! Diego Você Gostaria De Doar Hoje?",
+                          textAlign: TextAlign.center,
+
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF5BB8C9),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // CATEGORIAS
+                    AnimatedOpacity(
+
+                      duration:
+                          const Duration(milliseconds: 250),
+
+                      opacity: pesquisando ? 0 : 1,
+
+                      child: AnimatedContainer(
+
+                        duration:
+                            const Duration(milliseconds: 300),
+
+                        height: pesquisando ? 0 : 90,
+
+                        child: Row(
+
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceAround,
+
+                          children:
+                              categorias.map((categoria) {
+
+                            final bool selecionado =
+                                categoriaSelecionada ==
+                                    categoria['nome'];
+
+                            return GestureDetector(
+
+                              onTap: () {
+
+                                setState(() {
+
+                                  if (categoriaSelecionada ==
+                                      categoria['nome']) {
+
+                                    categoriaSelecionada = "";
+
+                                  } else {
+
+                                    categoriaSelecionada =
+                                        categoria['nome'];
+                                  }
+                                });
+                              },
+
+                              child: Container(
+
+                                width: 75,
+                                height: 75,
+
+                                decoration: BoxDecoration(
+
+                                  color: selecionado
+                                      ? const Color(
+                                          0xFF5BB8C9)
+                                      : Colors.white,
+
+                                  shape: BoxShape.circle,
+                                ),
+
+                                child: Center(
+
+                                  child: Text(
+                                    categoria['icone'],
+                                    style:
+                                        const TextStyle(
+                                      fontSize: 35,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+
+                    // PESQUISA
+                    AnimatedContainer(
+
+                      duration:
+                          const Duration(milliseconds: 350),
+
+                      curve: Curves.easeInOut,
+
+                      padding: EdgeInsets.only(
+                        top: pesquisando ? 10 : 25,
+                      ),
+
+                      child: Container(
+
+                        padding:
+                            const EdgeInsets.symmetric(
+                          horizontal: 20,
+                        ),
+
+                        decoration: BoxDecoration(
+
+                          color: Colors.white,
+
+                          borderRadius:
+                              BorderRadius.circular(35),
+
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black
+                                  .withOpacity(0.10),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+
+                        child: Row(
+
+                          children: [
+
+                            Expanded(
+
+                              child: TextField(
+
+                                controller:
+                                    pesquisaController,
+
+                                focusNode:
+                                    pesquisaFocusNode,
+
+                                decoration:
+                                    const InputDecoration(
+                                  hintText:
+                                      "Pesquisar ONG, Instituição",
+                                  border:
+                                      InputBorder.none,
+                                ),
+
+                                onTap: () async {
+
+                                  setState(() {
+                                    pesquisando = true;
+                                  });
+
+                                  await scrollController
+                                      .animateTo(
+                                    0,
+                                    duration:
+                                        const Duration(
+                                      milliseconds: 450,
+                                    ),
+                                    curve:
+                                        Curves.easeInOut,
+                                  );
+                                },
+
+                                onChanged: (value) {
+                                  setState(() {});
+                                },
+
+                                onSubmitted: (_) {
+
+                                  setState(() {
+                                    pesquisando = false;
+                                  });
+
+                                  pesquisaFocusNode
+                                      .unfocus();
+                                },
+                              ),
+                            ),
+
+                            GestureDetector(
+
+                              onTap: () {
+
+                                setState(() {
+                                  pesquisando = false;
+                                });
+
+                                pesquisaFocusNode
+                                    .unfocus();
+                              },
+
+                              child: const Icon(
+                                Icons.search,
+                                size: 35,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
 
-            // CAMPANHAS
-            Expanded(
-
-              child: StreamBuilder<QuerySnapshot>(
+              // CAMPANHAS
+              StreamBuilder<QuerySnapshot>(
 
                 stream: FirebaseFirestore.instance
                     .collection('campanhas')
@@ -251,7 +362,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                   if (snapshot.connectionState ==
                       ConnectionState.waiting) {
 
-                    return const Center(
+                    return const Padding(
+                      padding: EdgeInsets.all(50),
                       child: CircularProgressIndicator(),
                     );
                   }
@@ -259,18 +371,24 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                   if (!snapshot.hasData ||
                       snapshot.data!.docs.isEmpty) {
 
-                    return const Center(
+                    return const Padding(
 
-                      child: Text(
-                        "Nenhuma campanha encontrada.",
+                      padding: EdgeInsets.all(50),
+
+                      child: Center(
+                        child: Text(
+                          "Nenhuma campanha encontrada.",
+                        ),
                       ),
                     );
                   }
 
-                  var campanhas = snapshot.data!.docs;
+                  var campanhas =
+                      snapshot.data!.docs;
 
                   // PESQUISA
-                  campanhas = campanhas.where((campanha) {
+                  campanhas =
+                      campanhas.where((campanha) {
 
                     final titulo =
                         campanha['titulo']
@@ -286,7 +404,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                   }).toList();
 
                   // FILTRO
-                  if (categoriaSelecionada.isNotEmpty) {
+                  if (categoriaSelecionada
+                      .isNotEmpty) {
 
                     campanhas =
                         campanhas.where((campanha) {
@@ -302,29 +421,41 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
                   return ListView.builder(
 
+                    shrinkWrap: true,
+
+                    physics:
+                        const NeverScrollableScrollPhysics(),
+
                     padding: const EdgeInsets.only(
                       left: 20,
                       right: 20,
+                      top: 20,
                       bottom: 120,
                     ),
 
                     itemCount: campanhas.length,
 
-                    itemBuilder: (context, index) {
+                    itemBuilder:
+                        (context, index) {
 
-                      final campanha = campanhas[index];
+                      final campanha =
+                          campanhas[index];
 
                       return Container(
 
-                        margin:
-                            const EdgeInsets.only(bottom: 20),
+                        margin: const EdgeInsets.only(
+                          bottom: 20,
+                        ),
 
                         decoration: BoxDecoration(
 
-                          color: const Color(0xFFE8E8E8),
+                          color:
+                              const Color(0xFFE8E8E8),
 
                           borderRadius:
-                              BorderRadius.circular(25),
+                              BorderRadius.circular(
+                            25,
+                          ),
                         ),
 
                         child: Row(
@@ -342,35 +473,42 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                                     Radius.circular(25),
                               ),
 
-                              child: campanha['imagem'] != ""
+                              child:
+                                  campanha['imagem'] !=
+                                          ""
 
-                                  ? Image.network(
+                                      ? Image.network(
 
-                                      campanha['imagem'],
+                                          campanha[
+                                              'imagem'],
 
-                                      width: 140,
-                                      height: 170,
+                                          width: 140,
+                                          height: 170,
 
-                                      fit: BoxFit.cover,
-                                    )
+                                          fit:
+                                              BoxFit.cover,
+                                        )
 
-                                  : Container(
+                                      : Container(
 
-                                      width: 140,
-                                      height: 170,
+                                          width: 140,
+                                          height: 170,
 
-                                      color:
-                                          Colors.grey[300],
+                                          color: Colors
+                                              .grey[300],
 
-                                      child: const Center(
+                                          child:
+                                              const Center(
 
-                                        child: Icon(
-                                          Icons.image,
-                                          size: 50,
-                                          color: Colors.grey,
+                                            child: Icon(
+                                              Icons
+                                                  .image,
+                                              size: 50,
+                                              color: Colors
+                                                  .grey,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
                             ),
 
                             // TEXTO
@@ -379,7 +517,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                               child: Padding(
 
                                 padding:
-                                    const EdgeInsets.all(15),
+                                    const EdgeInsets
+                                        .all(15),
 
                                 child: Column(
 
@@ -391,18 +530,21 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
                                     Text(
 
-                                      campanha['titulo'],
+                                      campanha[
+                                          'titulo'],
 
                                       style:
                                           const TextStyle(
                                         fontSize: 18,
                                         fontWeight:
-                                            FontWeight.bold,
+                                            FontWeight
+                                                .bold,
                                       ),
                                     ),
 
                                     const SizedBox(
-                                        height: 12),
+                                      height: 12,
+                                    ),
 
                                     Row(
 
@@ -410,8 +552,10 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
                                         const Text(
                                           "📍 ",
-                                          style: TextStyle(
-                                            fontSize: 18,
+                                          style:
+                                              TextStyle(
+                                            fontSize:
+                                                18,
                                           ),
                                         ),
 
@@ -424,7 +568,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
                                             style:
                                                 const TextStyle(
-                                              fontSize: 16,
+                                              fontSize:
+                                                  16,
                                               fontWeight:
                                                   FontWeight
                                                       .w600,
@@ -435,9 +580,11 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                                     ),
 
                                     const SizedBox(
-                                        height: 10),
+                                      height: 10,
+                                    ),
 
-                                    if (campanha['meta'] !=
+                                    if (campanha[
+                                            'meta'] !=
                                         null)
 
                                       Row(
@@ -448,7 +595,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                                             "🎯 ",
                                             style:
                                                 TextStyle(
-                                              fontSize: 18,
+                                              fontSize:
+                                                  18,
                                             ),
                                           ),
 
@@ -458,7 +606,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
                                             style:
                                                 const TextStyle(
-                                              fontSize: 16,
+                                              fontSize:
+                                                  16,
                                               fontWeight:
                                                   FontWeight
                                                       .w600,
@@ -468,7 +617,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                                       ),
 
                                     const SizedBox(
-                                        height: 14),
+                                      height: 14,
+                                    ),
 
                                     Row(
 
@@ -481,23 +631,28 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
                                           decoration:
                                               const BoxDecoration(
-                                            color: Colors.blue,
-                                            shape:
-                                                BoxShape.circle,
+                                            color: Colors
+                                                .blue,
+                                            shape: BoxShape
+                                                .circle,
                                           ),
                                         ),
 
                                         const SizedBox(
-                                            width: 8),
+                                          width: 8,
+                                        ),
 
                                         const Text(
 
                                           "Aceitando Doações",
 
-                                          style: TextStyle(
-                                            fontSize: 16,
+                                          style:
+                                              TextStyle(
+                                            fontSize:
+                                                16,
                                             fontWeight:
-                                                FontWeight.bold,
+                                                FontWeight
+                                                    .bold,
                                           ),
                                         ),
                                       ],
@@ -513,8 +668,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
 
@@ -542,12 +697,6 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
             Icon(
               Icons.home,
-              size: 38,
-              color: Colors.white,
-            ),
-
-            Icon(
-              Icons.search,
               size: 38,
               color: Colors.white,
             ),
