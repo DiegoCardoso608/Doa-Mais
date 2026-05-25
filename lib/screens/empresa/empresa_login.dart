@@ -1,5 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmpresaLogin extends StatefulWidget {
   const EmpresaLogin({super.key});
@@ -10,7 +11,7 @@ class EmpresaLogin extends StatefulWidget {
 
 class _EmpresaLoginState extends State<EmpresaLogin> {
 
-  final TextEditingController emailController =
+  final TextEditingController cnpjController =
       TextEditingController();
 
   final TextEditingController senhaController =
@@ -22,7 +23,7 @@ class _EmpresaLoginState extends State<EmpresaLogin> {
   Future<void> loginEmpresa() async {
 
     if (
-      emailController.text.isEmpty ||
+      cnpjController.text.isEmpty ||
       senhaController.text.isEmpty
     ) {
 
@@ -41,19 +42,32 @@ class _EmpresaLoginState extends State<EmpresaLogin> {
 
     try {
 
+      final empresaQuery =
+          await FirebaseFirestore.instance
+              .collection('empresas')
+              .where(
+                'cnpj',
+                isEqualTo: cnpjController.text.trim(),
+              )
+              .limit(1)
+              .get();
+
+      if (empresaQuery.docs.isEmpty) {
+        throw Exception('CNPJ não encontrado');
+      }
+
+      final empresaData =
+          empresaQuery.docs.first.data();
+
+      final email = empresaData['email'];
+
       await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-        email: emailController.text.trim(),
+        email: email,
         password: senhaController.text.trim(),
       );
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login realizado com sucesso'),
-        ),
-      );
 
       Navigator.pushReplacementNamed(
         context,
@@ -64,16 +78,18 @@ class _EmpresaLoginState extends State<EmpresaLogin> {
 
       String mensagem = 'Erro ao fazer login';
 
-      if (e.code == 'user-not-found') {
-        mensagem = 'Empresa não encontrada';
-      }
-
       if (e.code == 'wrong-password') {
         mensagem = 'Senha incorreta';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(mensagem)),
+      );
+
+    } catch (e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
       );
 
     }
@@ -83,34 +99,11 @@ class _EmpresaLoginState extends State<EmpresaLogin> {
     });
   }
 
-  InputDecoration campo(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: const Color(0xFFF1F1F1),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Colors.black26,
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Colors.blue,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEDEDED),
+      backgroundColor: const Color(0xFFEAEAEA),
 
       body: SafeArea(
         child: SingleChildScrollView(
@@ -120,161 +113,144 @@ class _EmpresaLoginState extends State<EmpresaLogin> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(
-                  top: 40,
-                  bottom: 40,
+                  top: 50,
+                  bottom: 30,
                 ),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFD8EDF2),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
+                  color: Color(0xFFAEC6CF),
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(30),
                   ),
                 ),
 
                 child: Column(
                   children: [
 
-const Icon(
-  Icons.volunteer_activism,
-  size: 80,
-  color: Colors.orange,
-),
+                    const Icon(
+                      Icons.business,
+                      size: 80,
+                      color: Colors.orange,
+                    ),
 
-const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-const Text(
-  "Doa+",
-  style: TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-    color: Colors.orange,
-  ),
-),
+                    const Text(
+                      "Doa+ Empresa",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
                   ],
                 ),
               ),
 
+              const SizedBox(height: 40),
+
               Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 25,
+                ),
+
                 child: Column(
                   children: [
 
-                    const SizedBox(height: 30),
-
                     TextField(
-                      controller: emailController,
-                      decoration: campo('Email'),
+                      controller: cnpjController,
+                      keyboardType: TextInputType.number,
+
+                      decoration: InputDecoration(
+                        hintText: 'CNPJ',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(15),
+                        ),
+                      ),
                     ),
 
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 20),
 
                     TextField(
                       controller: senhaController,
                       obscureText: !senhaVisivel,
 
-                      decoration: campo('Senha').copyWith(
+                      decoration: InputDecoration(
+                        hintText: 'Senha',
+                        filled: true,
+                        fillColor: Colors.white,
+
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(15),
+                        ),
+
                         suffixIcon: IconButton(
-                          onPressed: () {
-
-                            setState(() {
-                              senhaVisivel =
-                                  !senhaVisivel;
-                            });
-
-                          },
-
                           icon: Icon(
                             senhaVisivel
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                           ),
+
+                          onPressed: () {
+                            setState(() {
+                              senhaVisivel =
+                                  !senhaVisivel;
+                            });
+                          },
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
 
                     SizedBox(
                       width: double.infinity,
-                      height: 60,
 
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding:
+                              const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
+
                         onPressed:
                             carregando
                                 ? null
                                 : loginEmpresa,
 
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(40),
-                          ),
-                        ),
-
-                        child: carregando
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                'Entrar',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.white,
-                                ),
-                              ),
+                        child:
+                            carregando
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    'Logar como Empresa',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
                       ),
                     ),
 
-                    const SizedBox(height: 25),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60,
-
-                      child: ElevatedButton(
-                        onPressed: () {
-
-                          Navigator.pushNamed(
-                            context,
-                            '/empresa_cadastro',
-                          );
-
-                        },
-
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color(0xFFF2A24B),
-
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(40),
-                          ),
-                        ),
-
-                        child: const Text(
-                          'Criar Conta',
-                          style: TextStyle(
-                            fontSize: 22,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 20),
 
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+
+                        Navigator.pushNamed(
+                          context,
+                          '/empresa_cadastro',
+                        );
                       },
 
                       child: const Text(
-                        'Voltar',
-                        style: TextStyle(
-                          fontSize: 18,
-                        ),
+                        'Criar sua Empresa',
                       ),
                     ),
                   ],
