@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../utils/cnpj_formatter.dart';
 
 class EmpresaCadastro extends StatefulWidget {
   const EmpresaCadastro({super.key});
@@ -65,10 +66,15 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
         password: senhaController.text.trim(),
       );
 
-      await FirebaseFirestore.instance
-          .collection('empresas')
-          .doc(userCredential.user!.uid)
-          .set({
+final cnpjLimpo = cnpjController.text.replaceAll(
+  RegExp(r'[^0-9]'),
+  '',
+);
+
+await FirebaseFirestore.instance
+    .collection('empresas')
+    .doc(userCredential.user!.uid)
+    .set({
 
         'nomeFantasia':
             nomeController.text.trim(),
@@ -77,7 +83,7 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
             enderecoController.text.trim(),
 
         'cnpj':
-            cnpjController.text.trim(),
+            cnpjLimpo,
 
         'email':
             emailController.text.trim(),
@@ -244,10 +250,16 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
 
                     const SizedBox(height: 20),
 
-                    TextField(
-                      controller: cnpjController,
-                      decoration: campo('CNPJ'),
-                    ),
+TextField(
+  controller: cnpjController,
+  keyboardType: TextInputType.number,
+
+  inputFormatters: [
+    CnpjInputFormatter(),
+  ],
+
+  decoration: campo('CNPJ'),
+),
 
                     const SizedBox(height: 20),
 

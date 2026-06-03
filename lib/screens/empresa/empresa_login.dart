@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../utils/cnpj_formatter.dart';
 
 class EmpresaLogin extends StatefulWidget {
   const EmpresaLogin({super.key});
@@ -42,15 +43,21 @@ class _EmpresaLoginState extends State<EmpresaLogin> {
 
     try {
 
-      final empresaQuery =
-          await FirebaseFirestore.instance
-              .collection('empresas')
-              .where(
-                'cnpj',
-                isEqualTo: cnpjController.text.trim(),
-              )
-              .limit(1)
-              .get();
+
+final cnpjLimpo = cnpjController.text.replaceAll(
+  RegExp(r'[^0-9]'),
+  '',
+);
+
+final empresaQuery =
+    await FirebaseFirestore.instance
+        .collection('empresas')
+        .where(
+          'cnpj',
+          isEqualTo: cnpjLimpo,
+        )
+        .limit(1)
+        .get();
 
       if (empresaQuery.docs.isEmpty) {
         throw Exception('CNPJ não encontrado');
@@ -156,20 +163,23 @@ class _EmpresaLoginState extends State<EmpresaLogin> {
                 child: Column(
                   children: [
 
-                    TextField(
-                      controller: cnpjController,
-                      keyboardType: TextInputType.number,
+TextField(
+  controller: cnpjController,
+  keyboardType: TextInputType.number,
 
-                      decoration: InputDecoration(
-                        hintText: 'CNPJ',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
+  inputFormatters: [
+    CnpjInputFormatter(),
+  ],
+
+  decoration: InputDecoration(
+    hintText: 'CNPJ',
+    filled: true,
+    fillColor: Colors.white,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+    ),
+  ),
+),
 
                     const SizedBox(height: 20),
 
