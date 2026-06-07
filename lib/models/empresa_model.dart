@@ -1,25 +1,29 @@
-class EmpresaModel {
-  final String nome;
-  final String bannerUrl;
+class CampanhaModel {
+  final String id;
+  final String empresaId;
+  final String empresaNome;
+  final String titulo;
   final String descricao;
-  final String campanha;
-  final List<String> itens;
-  final String endereco;
-  final String horario;
-  final String telefone;
-  final double latitude;
-  final double longitude;
+  final String categoria;
+  final List<String> itensNecessarios;
+  final String enderecoColeta;
+  final String telefoneContato;
+  final String imagemUrl;
+  final String status;
+  final int totalDoacoes;
 
-  EmpresaModel({
-    required this.nome,
-    required this.bannerUrl,
+  CampanhaModel({
+    required this.id,
+    required this.empresaId,
+    required this.empresaNome,
+    required this.titulo,
     required this.descricao,
-    required this.campanha,
-    required this.itens,
-    required this.endereco,
-    required this.horario,
-    required this.telefone,
-    required this.latitude,
-    required this.longitude,
+    required this.categoria,
+    required this.itensNecessarios,
+    required this.enderecoColeta,
+    required this.telefoneContato,
+    required this.imagemUrl,
+    required this.status,
+    required this.totalDoacoes,
   });
 }
