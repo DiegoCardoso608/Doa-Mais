@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../services/campanha_service.dart';
+import '../../services/cloudinary_service.dart';
 
 class CriarCampanha extends StatefulWidget {
   const CriarCampanha({super.key});
@@ -25,6 +25,10 @@ class _CriarCampanhaState extends State<CriarCampanha> {
 
   final CampanhaService _campanhaService =
       CampanhaService();
+  final CloudinaryService _cloudinaryService =
+      CloudinaryService();
+
+  String imagemUrl = '';
 
   void adicionarItem() {
     final item = itemController.text.trim();
@@ -42,6 +46,37 @@ class _CriarCampanhaState extends State<CriarCampanha> {
     setState(() {
       itensNecessarios.removeAt(index);
     });
+  }
+
+  Future selecionarImagem() async {
+    try {
+      final url =
+          await _cloudinaryService.uploadImagem();
+
+      if (url == null) return;
+
+      setState(() {
+        imagemUrl = url;
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Imagem enviada com sucesso!',
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erro ao enviar imagem: $e',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> salvarCampanha() async {
@@ -86,6 +121,7 @@ class _CriarCampanhaState extends State<CriarCampanha> {
         descricao:
             descricaoController.text.trim(),
         categoria: categoriaSelecionada,
+        imagem: imagemUrl,
         itensNecessarios: itensNecessarios,
         enderecoColeta:
             empresaData['endereco'] ?? '',
@@ -323,6 +359,42 @@ class _CriarCampanhaState extends State<CriarCampanha> {
                   ),
                 );
               },
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              'Imagem da Campanha',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            if (imagemUrl.isNotEmpty)
+              ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(12),
+                child: Image.network(
+                  imagemUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+
+            const SizedBox(height: 10),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: selecionarImagem,
+                icon: const Icon(Icons.image),
+                label: const Text(
+                  'Selecionar Imagem',
+                ),
+              ),
             ),
 
             const SizedBox(height: 20),

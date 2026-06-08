@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'detalhe_campanha.dart';
 
 class MenuPrincipal extends StatefulWidget {
   const MenuPrincipal({super.key});
@@ -436,33 +437,55 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                     itemCount: campanhas.length,
 
                     itemBuilder:
-                        (context, index) {
+    (context, index) {
 
-                      final campanha =
-                          campanhas[index];
+  final campanha =
+      campanhas[index];
 
-                      return Container(
+  final dados =
+      campanha.data() as Map;
 
-                        margin: const EdgeInsets.only(
-                          bottom: 20,
-                        ),
+  final imagem =
+      dados.containsKey('imagem')
+          ? (dados['imagem'] ?? '')
+          : '';
 
-                        decoration: BoxDecoration(
+  final meta =
+      dados.containsKey('meta')
+          ? dados['meta']
+          : null;
 
-                          color:
-                              const Color(0xFFE8E8E8),
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DetalheCampanha(
+            campanhaId: campanha.id,
+            campanha: campanha.data()
+                as Map<String, dynamic>,
+          ),
+        ),
+      );
+    },
 
-                          borderRadius:
-                              BorderRadius.circular(
-                            25,
-                          ),
-                        ),
+    child: Container(
 
-                        child: Row(
+      margin: const EdgeInsets.only(
+        bottom: 20,
+      ),
 
-                          children: [
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8E8E8),
+        borderRadius:
+            BorderRadius.circular(25),
+      ),
 
-                            // IMAGEM
+      child: Row(
+
+        children: [
+
+          // IMAGEM
                             ClipRRect(
 
                               borderRadius:
@@ -474,13 +497,11 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                               ),
 
                               child:
-                                  campanha['imagem'] !=
-                                          ""
+                                  imagem.isNotEmpty
 
                                       ? Image.network(
 
-                                          campanha[
-                                              'imagem'],
+                                          imagem,
 
                                           width: 140,
                                           height: 170,
@@ -583,9 +604,7 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                                       height: 10,
                                     ),
 
-                                    if (campanha[
-                                            'meta'] !=
-                                        null)
+                                    if (meta != null)
 
                                       Row(
 
@@ -602,7 +621,7 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
                                           Text(
 
-                                            "Meta: ${campanha['meta']}",
+                                            "Meta: $meta",
 
                                             style:
                                                 const TextStyle(
@@ -663,8 +682,9 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    );
+                  },
                   );
                 },
               ),
