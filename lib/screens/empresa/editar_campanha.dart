@@ -5,14 +5,22 @@ import '../../services/campanha_service.dart';
 import '../../services/cloudinary_service.dart';
 import '../../utils/telefone_formatter.dart';
 
-class CriarCampanha extends StatefulWidget {
-  const CriarCampanha({super.key});
+class EditarCampanha extends StatefulWidget {
+  final String campanhaId;
+  final Map<String, dynamic> campanha;
+
+  const EditarCampanha({
+    super.key,
+    required this.campanhaId,
+    required this.campanha,
+  });
 
   @override
-  State<CriarCampanha> createState() => _CriarCampanhaState();
+  State<EditarCampanha> createState() =>
+      _EditarCampanhaState();
 }
 
-class _CriarCampanhaState extends State<CriarCampanha> {
+class _EditarCampanhaState extends State<EditarCampanha> {
   final tituloController = TextEditingController();
   final descricaoController = TextEditingController();
   final telefoneController = TextEditingController();
@@ -30,6 +38,33 @@ class _CriarCampanhaState extends State<CriarCampanha> {
       CloudinaryService();
 
   String imagemUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    tituloController.text =
+        widget.campanha['titulo'] ?? '';
+
+    descricaoController.text =
+        widget.campanha['descricao'] ?? '';
+
+    telefoneController.text =
+        widget.campanha['telefoneContato'] ?? '';
+
+    categoriaSelecionada =
+        widget.campanha['categoria'] ?? 'Roupa';
+
+    imagemUrl =
+        widget.campanha['imagem'] ?? '';
+
+    itensNecessarios =
+        List<String>.from(
+          widget.campanha[
+              'itensNecessarios'] ??
+          [],
+        );
+  }
 
   void adicionarItem() {
     final item = itemController.text.trim();
@@ -80,7 +115,7 @@ class _CriarCampanhaState extends State<CriarCampanha> {
     }
   }
 
-  Future<void> salvarCampanha() async {
+  Future<void> salvarAlteracoes() async {
     if (tituloController.text.trim().isEmpty ||
         descricaoController.text.trim().isEmpty ||
         telefoneController.text.trim().isEmpty) {
@@ -97,41 +132,16 @@ class _CriarCampanhaState extends State<CriarCampanha> {
         carregando = true;
       });
 
-      final uid =
-          FirebaseAuth.instance.currentUser!.uid;
-
-      final empresaDoc =
-          await FirebaseFirestore.instance
-              .collection('empresas')
-              .doc(uid)
-              .get();
-
-      final empresaData = empresaDoc.data();
-
-      if (empresaData == null) {
-        throw Exception(
-          'Empresa não encontrada.',
-        );
-      }
-
-      await _campanhaService.criarCampanha(
-        empresaId: uid,
-        empresaNome:
-            empresaData['nomeFantasia'] ?? '',
+      await _campanhaService.editarCampanha(
+        campanhaId: widget.campanhaId,
         titulo: tituloController.text.trim(),
         descricao:
             descricaoController.text.trim(),
         categoria: categoriaSelecionada,
         imagem: imagemUrl,
         itensNecessarios: itensNecessarios,
-        enderecoColeta:
-            empresaData['endereco'] ?? '',
         telefoneContato:
             telefoneController.text.trim(),
-        latitude:
-            empresaData['latitude'],
-        longitude:
-            empresaData['longitude'],
       );
 
       if (!mounted) return;
@@ -139,7 +149,7 @@ class _CriarCampanhaState extends State<CriarCampanha> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Campanha criada com sucesso!',
+            'Campanha atualizada!',
           ),
         ),
       );
@@ -172,7 +182,7 @@ class _CriarCampanhaState extends State<CriarCampanha> {
     return Scaffold(
       backgroundColor: const Color(0xFFEAEAEA),
       appBar: AppBar(
-        title: const Text('Nova Campanha'),
+        title: const Text('Editar Campanha'),
         backgroundColor: const Color(0xFFAEC6CF),
       ),
       body: SingleChildScrollView(
@@ -449,7 +459,7 @@ class _CriarCampanhaState extends State<CriarCampanha> {
                 onPressed:
                     carregando
                         ? null
-                        : salvarCampanha,
+                        : salvarAlteracoes,
                 child:
                     carregando
                         ? const CircularProgressIndicator(
@@ -457,7 +467,7 @@ class _CriarCampanhaState extends State<CriarCampanha> {
                                 Colors.white,
                           )
                         : const Text(
-                            'Criar Campanha',
+                            'Salvar Alterações',
                             style: TextStyle(
                               color:
                                   Colors.white,
@@ -466,6 +476,71 @@ class _CriarCampanhaState extends State<CriarCampanha> {
                           ),
               ),
             ),
+
+            const SizedBox(height: 15),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                onPressed: () async {
+                  final confirmar =
+                      await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text(
+                          'Encerrar campanha?',
+                        ),
+                        content: const Text(
+                          'A campanha deixará de aparecer para os usuários.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(
+                                  context,
+                                  false,
+                                ),
+                            child:
+                                const Text('Cancelar'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () =>
+                                Navigator.pop(
+                                  context,
+                                  true,
+                                ),
+                            child:
+                                const Text('Encerrar'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (confirmar != true) return;
+
+                  await _campanhaService
+                      .encerrarCampanha(
+                    widget.campanhaId,
+                  );
+
+                  if (!mounted) return;
+
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  'Encerrar Campanha',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+
           ],
         ),
       ),

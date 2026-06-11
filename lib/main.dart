@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
 
+import 'screens/auth_wrapper.dart';
 import 'screens/main_screen.dart';
 import 'screens/login_pf.dart';
 import 'screens/cadastro_pf.dart';
@@ -35,7 +36,7 @@ class DoaPlusApp extends StatelessWidget {
       initialRoute: '/',
 
       routes: {
-        '/': (context) => const MainScreen(),
+        '/': (context) => const AuthWrapper(),
 
         '/login_pf': (context) => const LoginPF(),
 

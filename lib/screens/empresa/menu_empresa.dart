@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'interessados_screen.dart';
+import 'editar_campanha.dart';
+import '../perfil_usuario.dart';
+import 'perfil_empresa.dart';
 
 class MenuEmpresa extends StatefulWidget {
   const MenuEmpresa({super.key});
@@ -37,6 +41,10 @@ class _MenuEmpresaState extends State<MenuEmpresa> {
             .where(
               'empresaId',
               isEqualTo: usuario.uid,
+            )
+            .where(
+              'status',
+              isEqualTo: 'ativa',
             )
             .get();
 
@@ -84,14 +92,56 @@ class _MenuEmpresaState extends State<MenuEmpresa> {
                 ),
               ),
               child: Column(
-                children: const [
-                  Icon(
+                children: [
+                  // BOTÃO PERFIL + LOGOUT
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.person),
+                          color: Colors.white,
+                          iconSize: 28,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PerfilEmpresa(),
+                              ),
+                            ).then((_) {
+                              setState(() {});
+                            });
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.logout),
+                          color: Colors.white,
+                          iconSize: 28,
+                          onPressed: () async {
+                            await FirebaseAuth.instance.signOut();
+
+                            if (!mounted) return;
+
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/',
+                              (route) => false,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // LOGO
+                  const Icon(
                     Icons.volunteer_activism,
                     size: 80,
                     color: Colors.orange,
                   ),
-                  SizedBox(height: 10),
-                  Text(
+                  const SizedBox(height: 10),
+                  const Text(
                     "Doa+",
                     style: TextStyle(
                       fontSize: 22,
@@ -308,6 +358,55 @@ class _MenuEmpresaState extends State<MenuEmpresa> {
 
             Text(
               'Itens: ${(dados['itensNecessarios'] as List?)?.length ?? 0}',
+            ),
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              InteressadosScreen(
+                            campanhaId: campanha.id,
+                            campanhaTitulo:
+                                dados['titulo'] ??
+                                    '',
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Interessados',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              EditarCampanha(
+                            campanhaId:
+                                campanha.id,
+                            campanha: dados,
+                          ),
+                        ),
+                      ).then((_) {
+                        carregarDados();
+                      });
+                    },
+                    child: const Text(
+                      'Editar',
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

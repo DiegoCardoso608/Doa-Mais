@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'detalhe_campanha.dart';
+import 'perfil_usuario.dart';
 
 class MenuPrincipal extends StatefulWidget {
   const MenuPrincipal({super.key});
@@ -48,15 +49,17 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
 
-      backgroundColor: const Color(0xFFF2F2F2),
+        backgroundColor: const Color(0xFFF2F2F2),
 
-      body: SafeArea(
+        body: SafeArea(
 
-        child: SingleChildScrollView(
+          child: SingleChildScrollView(
 
-          controller: scrollController,
+            controller: scrollController,
 
           child: Column(
 
@@ -83,6 +86,28 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                 child: Column(
 
                   children: [
+
+                    // BOTÃO PERFIL (topo direito)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.person),
+                          color: const Color(0xFF5BB8C9),
+                          iconSize: 28,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PerfilUsuario(),
+                              ),
+                            ).then((_) {
+                              setState(() {});
+                            });
+                          },
+                        ),
+                      ],
+                    ),
 
                     // LOGO
                     AnimatedOpacity(
@@ -284,11 +309,25 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                                     pesquisaFocusNode,
 
                                 decoration:
-                                    const InputDecoration(
+                                    InputDecoration(
                                   hintText:
                                       "Pesquisar ONG, Instituição",
                                   border:
                                       InputBorder.none,
+                                  suffixIcon: pesquisando
+                                      ? IconButton(
+                                          icon: const Icon(Icons.close),
+                                          onPressed: () {
+                                            pesquisaController.clear();
+
+                                            setState(() {
+                                              pesquisando = false;
+                                            });
+
+                                            pesquisaFocusNode.unfocus();
+                                          },
+                                        )
+                                      : null,
                                 ),
 
                                 onTap: () async {
@@ -728,6 +767,7 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

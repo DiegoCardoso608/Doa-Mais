@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../utils/cnpj_formatter.dart';
+import '../../utils/cnpj_validator.dart';
+import '../../utils/telefone_formatter.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class EmpresaCadastro extends StatefulWidget {
   const EmpresaCadastro({super.key});
@@ -15,8 +19,23 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
   final TextEditingController nomeController =
       TextEditingController();
 
+  final TextEditingController razaoSocialController =
+      TextEditingController();
+
+  final TextEditingController responsavelController =
+      TextEditingController();
+
+  final TextEditingController telefoneController =
+      TextEditingController();
+
   final TextEditingController enderecoController =
       TextEditingController();
+
+  String? cep;
+
+  double? latitude;
+
+  double? longitude;
 
   final TextEditingController cnpjController =
       TextEditingController();
@@ -38,6 +57,9 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
 
     if (
       nomeController.text.isEmpty ||
+      razaoSocialController.text.isEmpty ||
+      responsavelController.text.isEmpty ||
+      telefoneController.text.isEmpty ||
       enderecoController.text.isEmpty ||
       cnpjController.text.isEmpty ||
       emailController.text.isEmpty ||
@@ -50,6 +72,38 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
         ),
       );
 
+      return;
+    }
+
+    final cnpjLimpo = cnpjController.text.replaceAll(
+      RegExp(r'[^0-9]'),
+      '',
+    );
+
+    // Validar CNPJ
+    if (!CnpjValidator.isValid(cnpjLimpo)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('CNPJ inválido'),
+        ),
+      );
+      return;
+    }
+
+    // Verificar se CNPJ já existe
+    final cnpjExiste = await FirebaseFirestore.instance
+        .collection('empresas')
+        .where('cnpj', isEqualTo: cnpjLimpo)
+        .limit(1)
+        .get();
+
+    if (cnpjExiste.docs.isNotEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('CNPJ já cadastrado'),
+        ),
+      );
       return;
     }
 
@@ -66,43 +120,52 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
         password: senhaController.text.trim(),
       );
 
-final cnpjLimpo = cnpjController.text.replaceAll(
-  RegExp(r'[^0-9]'),
-  '',
-);
+      await FirebaseFirestore.instance
+          .collection('empresas')
+          .doc(userCredential.user!.uid)
+          .set({
+              'uid': userCredential.user!.uid,
+              'nomeFantasia':
+                  nomeController.text.trim(),
+              'razaoSocial':
+                  razaoSocialController.text.trim(),
+              'responsavel':
+                  responsavelController.text.trim(),
+              'cnpj':
+                  cnpjLimpo,
+              'telefone':
+                  telefoneController.text.trim(),
+              'email':
+                  emailController.text.trim(),
+              'endereco':
+                  enderecoController.text.trim(),
+              'horarioFuncionamento': '',
+              'descricao': '',
+              'fotoPerfil': '',
+              'verificado': false,
+              'emailVerificado': false,
+              'cep':
+                  cep,
+              'latitude':
+                  latitude,
+              'longitude':
+                  longitude,
+              'tipo': 'empresa',
+              'dataCriacao':
+                  '$dia/$mes/$ano',
+              'criadoEm':
+                  Timestamp.now(),
+            });
 
-await FirebaseFirestore.instance
-    .collection('empresas')
-    .doc(userCredential.user!.uid)
-    .set({
-
-        'nomeFantasia':
-            nomeController.text.trim(),
-
-        'endereco':
-            enderecoController.text.trim(),
-
-        'cnpj':
-            cnpjLimpo,
-
-        'email':
-            emailController.text.trim(),
-
-        'tipo': 'empresa',
-
-        'dataCriacao':
-            '$dia/$mes/$ano',
-
-        'criadoEm':
-            Timestamp.now(),
-      });
+      // Enviar email de verificação
+      await userCredential.user!.sendEmailVerification();
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Empresa cadastrada com sucesso!',
+            'Empresa cadastrada com sucesso! Confirme seu e-mail.',
           ),
         ),
       );
@@ -140,6 +203,19 @@ await FirebaseFirestore.instance
     setState(() {
       carregando = false;
     });
+  }
+
+  @override
+  void dispose() {
+    nomeController.dispose();
+    razaoSocialController.dispose();
+    responsavelController.dispose();
+    telefoneController.dispose();
+    enderecoController.dispose();
+    cnpjController.dispose();
+    emailController.dispose();
+    senhaController.dispose();
+    super.dispose();
   }
 
   InputDecoration campo(String hint) {
@@ -241,11 +317,84 @@ await FirebaseFirestore.instance
                     const SizedBox(height: 20),
 
                     TextField(
-                      controller: enderecoController,
+                      controller: razaoSocialController,
+                      decoration:
+                          campo('Razão Social'),
+                    ),
 
-                      decoration: campo(
-                        'Endereço',
-                      ),
+                    const SizedBox(height: 20),
+
+                    TextField(
+                      controller: responsavelController,
+                      decoration:
+                          campo('Nome do Responsável'),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    TextField(
+                      controller: telefoneController,
+                      inputFormatters: [
+                        TelefoneFormatter(),
+                      ],
+                      decoration:
+                          campo('Telefone'),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    GooglePlaceAutoCompleteTextField(
+                      textEditingController:
+                          enderecoController,
+
+                      googleAPIKey:
+                          'AIzaSyBN7s3AZHOcJ3Lt9I5V6Fziba_EEfSKjdk',
+
+                      inputDecoration:
+                          campo('Pesquisar endereço'),
+
+                      debounceTime: 800,
+
+                      countries: const ["br"],
+
+                      isLatLngRequired: true,
+
+                      getPlaceDetailWithLatLng: (prediction) {
+
+                        print('========== PLACE DETAILS ==========');
+                        print('Latitude: ${prediction.lat}');
+                        print('Longitude: ${prediction.lng}');
+                        print('===================================');
+
+                        latitude = double.tryParse(
+                          prediction.lat ?? '',
+                        );
+
+                        longitude = double.tryParse(
+                          prediction.lng ?? '',
+                        );
+                      },
+
+                      itemClick: (prediction) {
+
+                        print('========== GOOGLE PLACES ==========');
+                        print('Descrição: ${prediction.description}');
+                        print('Place ID: ${prediction.placeId}');
+                        print('Latitude: ${prediction.lat}');
+                        print('Longitude: ${prediction.lng}');
+                        print('===================================');
+
+                        enderecoController.text =
+                            prediction.description ?? '';
+
+                        enderecoController.selection =
+                            TextSelection.fromPosition(
+                          TextPosition(
+                            offset:
+                                enderecoController.text.length,
+                          ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 20),
@@ -255,7 +404,12 @@ TextField(
   keyboardType: TextInputType.number,
 
   inputFormatters: [
-    CnpjInputFormatter(),
+    MaskTextInputFormatter(
+      mask: '##.###.###/####-##',
+      filter: {
+        "#": RegExp(r'[0-9]')
+      },
+    ),
   ],
 
   decoration: campo('CNPJ'),

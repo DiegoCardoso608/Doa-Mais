@@ -76,9 +76,10 @@ final empresaQuery =
 
       if (!mounted) return;
 
-      Navigator.pushReplacementNamed(
+      Navigator.pushNamedAndRemoveUntil(
         context,
         '/menu_empresa',
+        (route) => false,
       );
 
     } on FirebaseAuthException catch (e) {
@@ -104,6 +105,97 @@ final empresaQuery =
     setState(() {
       carregando = false;
     });
+  }
+
+  Future<void> _mostrarRecuperacaoSenha() async {
+    final cnpjController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recuperar Senha'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Digite seu CNPJ para receber um link de recuperação',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: cnpjController,
+              decoration: InputDecoration(
+                labelText: 'CNPJ',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (cnpjController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Digite seu CNPJ')),
+                );
+                return;
+              }
+
+              try {
+                final cnpjLimpo = cnpjController.text
+                    .replaceAll(RegExp(r'[^0-9]'), '');
+
+                final empresaQuery =
+                    await FirebaseFirestore.instance
+                        .collection('empresas')
+                        .where('cnpj', isEqualTo: cnpjLimpo)
+                        .limit(1)
+                        .get();
+
+                if (!mounted) return;
+
+                Navigator.pop(context);
+
+                // Mensagem padrão (segurança: não informa se CNPJ existe)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Se existir uma conta vinculada, um e-mail será enviado.',
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                // Envia email se encontrou
+                if (empresaQuery.docs.isNotEmpty) {
+                  final email = empresaQuery.docs.first['email'];
+
+                  await FirebaseAuth.instance
+                      .sendPasswordResetEmail(email: email);
+                }
+
+                cnpjController.dispose();
+              } catch (e) {
+                if (!mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -245,6 +337,17 @@ TextField(
                                       fontSize: 18,
                                     ),
                                   ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // BOTÃO ESQUECEU SENHA
+                    TextButton(
+                      onPressed: _mostrarRecuperacaoSenha,
+                      child: const Text(
+                        'Esqueceu sua senha?',
+                        style: TextStyle(color: Colors.blue),
                       ),
                     ),
 

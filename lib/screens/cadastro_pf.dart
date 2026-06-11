@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../utils/telefone_formatter.dart';
 
 class CadastroPF extends StatefulWidget {
   const CadastroPF({super.key});
